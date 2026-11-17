@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado Casa — Eder & Tutti | Control Quincenal ($150)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22',
+                        },
+                        sand: {
+                            50: '#faf9f6',
+                            100: '#f4f1ea',
+                            200: '#e8e2d5',
+                            300: '#d5cbb8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type="range"] { accent-color: #059669; }
+    </style>
+</head>
+<body class="bg-sand-50 text-stone-800 dark:bg-stone-950 dark:text-stone-100 min-h-full flex flex-col transition-colors duration-200">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Top Header -->
+    <header class="bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
+                    <i class="fa-solid fa-basket-shopping text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-base sm:text-lg text-stone-900 dark:text-white tracking-tight">Mercado Casa — Eder & Tutti</h1>
+                        <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                            Tope $150.00
+                        </span>
+                    </div>
+                    <p class="text-xs text-stone-500 dark:text-stone-400">2 Adultos + 1 Niño (8 años) • Ciclo 15 días</p>
+                </div>
+            </div>
+
+            <!-- Multi-Period Selector & Actions -->
+            <div class="flex items-center flex-wrap gap-2">
+                <div class="flex items-center bg-stone-100 dark:bg-stone-800 rounded-xl p-1 border border-stone-200 dark:border-stone-700">
+                    <span class="pl-2.5 pr-1 text-xs font-semibold text-stone-500 dark:text-stone-400">
+                        <i class="fa-regular fa-calendar text-emerald-600 mr-1"></i>Quincena:
+                    </span>
+                    <select id="period-selector" onchange="switchPeriod(this.value)" class="bg-transparent text-xs sm:text-sm font-bold text-stone-900 dark:text-white pr-2 py-1 focus:outline-none cursor-pointer">
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+
+                <button onclick="openNewPeriodModal()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nueva Lista</span>
+                </button>
+
+                <button onclick="switchTab('sheets')" class="px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 text-xs font-semibold border border-stone-200 dark:border-stone-700 transition flex items-center gap-1.5 cursor-pointer" title="Sincronizar con Google Sheets">
+                    <i class="fa-solid fa-table text-emerald-600"></i>
+                    <span class="hidden sm:inline">Sheets</span>
+                </button>
+
+                <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 border border-stone-200 dark:border-stone-700 transition cursor-pointer" title="Cambiar tema">
+                    <i id="theme-icon" class="fa-solid fa-moon text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-stone-100 dark:border-stone-800/80">
+            <nav class="flex overflow-x-auto space-x-1 py-2 no-scrollbar">
+                <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                    <i class="fa-solid fa-chart-pie"></i> Resumen Ejecutivo
+                </button>
+                <button onclick="switchTab('shopping')" id="tab-shopping" class="tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                    <i class="fa-solid fa-list-check"></i> Lista & Pendientes
+                    <span id="nav-badge-pendientes" class="bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">8</span>
+                </button>
+                <button onclick="switchTab('menu')" id="tab-menu" class="tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                    <i class="fa-solid fa-utensils"></i> Menú 15 Días
+                </button>
+                <button onclick="switchTab('simulator')" id="tab-simulator" class="tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                    <i class="fa-solid fa-sliders"></i> Simulador Presupuesto ($150)
+                </button>
+                <button onclick="switchTab('sheets')" id="tab-sheets" class="tab-btn px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center gap-2 whitespace-nowrap cursor-pointer">
+                    <i class="fa-brands fa-google-drive"></i> Sincronizar Google Sheets
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ===================================================================== -->
+        <!-- TAB 1: RESUMEN EJECUTIVO                                              -->
+        <!-- ===================================================================== -->
+        <section id="section-overview" class="tab-section space-y-6">
+            
+            <!-- Top Budget Progress Banner -->
+            <div class="bg-white dark:bg-stone-900 rounded-2xl p-5 sm:p-6 border border-stone-200 dark:border-stone-800 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="overview-period-badge" class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                                Quincena 16-11-2026
+                            </span>
+                            <span id="overview-status-pill" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-semibold">
+                                Dentro del presupuesto
+                            </span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-stone-900 dark:text-white mt-2">Ejecución del Presupuesto Quincenal ($150.00 Máximo)</h2>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="kpi-spent-hero" class="text-3xl sm:text-4xl font-extrabold text-stone-900 dark:text-white">$134.67</span>
+                        <span class="text-sm font-medium text-stone-500 dark:text-stone-400">/ $150.00</span>
+                    </div>
+                </div>
+
+                <!-- Stacked Progress Bar: Confirmed Spent + Estimated Pending -->
+                <div class="w-full h-4 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden flex p-0.5 border border-stone-200/60 dark:border-stone-700">
+                    <div id="bar-spent" class="bg-emerald-600 h-full rounded-l-full transition-all duration-500" style="width: 89.78%;" title="Gasto Confirmado"></div>
+                    <div id="bar-pending" class="bg-amber-400 h-full transition-all duration-500" style="width: 10.22%;" title="Pendientes Estimados"></div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5 font-medium text-stone-700 dark:text-stone-300">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>
+                            Comprado: <strong id="legend-spent">$134.67</strong>
+                        </span>
+                        <span class="flex items-center gap-1.5 font-medium text-stone-700 dark:text-stone-300">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+                            Pendientes Est.: <strong id="legend-pending">$18.50</strong>
+                        </span>
+                    </div>
+                    <span id="legend-remaining" class="font-bold text-emerald-700 dark:text-emerald-400">Remanente libre: $15.33</span>
+                </div>
+            </div>
+
+            <!-- 4 KPI Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Gasto Confirmado</span>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                    </div>
+                    <p id="kpi-spent" class="text-2xl font-extrabold text-stone-900 dark:text-white mt-2">$134.67</p>
+                    <p id="kpi-spent-sub" class="text-xs text-stone-500 mt-1">Incluye $0.69 ITBMS • Ahorro $0.48</p>
+                </div>
+
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Saldo Disponible</span>
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                    </div>
+                    <p id="kpi-available" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">$15.33</p>
+                    <p id="kpi-available-sub" class="text-xs text-stone-500 mt-1">89.8% del tope de $150.00 usado</p>
+                </div>
+
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Artículos & Pendientes</span>
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950 text-amber-600 flex items-center justify-center">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                    </div>
+                    <p class="text-2xl font-extrabold text-stone-900 dark:text-white mt-2">
+                        <span id="kpi-items-bought">48</span> <span class="text-sm font-medium text-stone-400">comprados</span>
+                    </p>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-1">
+                        <span id="kpi-items-pending">8</span> pendientes por completar
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Costo / Ración Familia</span>
+                        <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 flex items-center justify-center">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+                    <p id="kpi-per-day" class="text-2xl font-extrabold text-stone-900 dark:text-white mt-2">$8.98 <span class="text-xs font-normal text-stone-400">/día</span></p>
+                    <p id="kpi-per-person" class="text-xs text-stone-500 mt-1">$3.45 por ración equiv. (2.6/día × 15d)</p>
+                </div>
+            </div>
+
+            <!-- Charts & Pending Quick Action Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Category Chart & Breakdown -->
+                <div class="lg:col-span-2 bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-base text-stone-900 dark:text-white">Gasto por Categoría (Sincronizado)</h3>
+                            <p class="text-xs text-stone-500">Se actualiza en vivo al completar pendientes o editar precios</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div class="h-60 flex items-center justify-center">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <div id="category-breakdown-list" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Pending Quick Resolve + Multi-period History -->
+                <div class="space-y-6">
+                    <!-- Quick Pending Widget -->
+                    <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-amber-200/80 dark:border-amber-900/60 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-clock text-amber-500"></i> Pendientes por Comprar
+                            </h3>
+                            <button onclick="switchTab('shopping')" class="text-xs font-semibold text-emerald-600 hover:underline cursor-pointer">Ver todos</button>
+                        </div>
+                        <div id="overview-pending-list" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Period Comparison Widget -->
+                    <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-emerald-600"></i> Historial de Quincenas
+                            </h3>
+                            <button onclick="openNewPeriodModal()" class="text-xs font-semibold text-emerald-600 hover:underline cursor-pointer">+ Nueva</button>
+                        </div>
+                        <div id="period-comparison-list" class="space-y-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 2: LISTA DE COMPRAS & PENDIENTES                                  -->
+        <!-- ===================================================================== -->
+        <section id="section-shopping" class="tab-section hidden space-y-6">
+            
+            <!-- PENDIENTES POR COMPRAR (Al marcar completado -> pasa a Lista Actual y desaparece de aquí) -->
+            <div class="bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-5 sm:p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="font-extrabold text-base sm:text-lg text-amber-950 dark:text-amber-200 flex items-center gap-2">
+                            <i class="fa-solid fa-bell text-amber-600"></i>
+                            Pendientes por Comprar (<span id="pending-section-count">8</span>)
+                        </h2>
+                        <p class="text-xs text-amber-800 dark:text-amber-300/80 mt-0.5">
+                            Al marcar un pendiente como <strong>Completado</strong>, desaparece de esta lista y se suma automáticamente a la Lista de Compras actual y al Resumen Ejecutivo.
+                        </p>
+                    </div>
+                    <!-- Quick Add Pending Form -->
+                    <form onsubmit="addNewPending(event)" class="flex items-center gap-2">
+                        <input type="text" id="new-pending-name" required placeholder="Nuevo pendiente (ej. Cilantro)" class="px-3 py-1.5 rounded-xl bg-white dark:bg-stone-900 border border-amber-300 dark:border-amber-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <input type="number" step="0.01" min="0" id="new-pending-price" placeholder="$ Est." class="w-20 px-2.5 py-1.5 rounded-xl bg-white dark:bg-stone-900 border border-amber-300 dark:border-amber-800 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <button type="submit" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition whitespace-nowrap cursor-pointer">
+                            <i class="fa-solid fa-plus"></i> Agregar
+                        </button>
+                    </form>
+                </div>
+
+                <div id="pendientes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Dynamic pending cards -->
+                </div>
+            </div>
+
+            <!-- LISTA DE COMPRAS ACTUAL -->
+            <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm p-5 sm:p-6 space-y-5">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-stone-100 dark:border-stone-800 pb-4">
+                    <div>
+                        <h3 class="font-extrabold text-base sm:text-lg text-stone-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-emerald-600"></i>
+                            Lista de Compras Actual — <span id="shopping-period-title" class="text-emerald-600">Quincena 16-11-2026</span>
+                        </h3>
+                        <p class="text-xs text-stone-500">Edita precios o cantidades directamente en la tabla. Todo se guarda y sincroniza al instante.</p>
+                    </div>
+
+                    <!-- Add Item to Current Shopping List -->
+                    <form onsubmit="addNewShoppingItem(event)" class="flex flex-wrap items-center gap-2">
+                        <input type="text" id="add-item-name" required placeholder="Producto..." class="px-3 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <select id="add-item-cat" class="px-2.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs focus:outline-none">
+                            <option value="Carnes y Proteínas">Carnes y Proteínas</option>
+                            <option value="Vegetales, Frutas y Tubérculos">Vegetales y Frutas</option>
+                            <option value="Granos y Enlatados">Granos y Enlatados</option>
+                            <option value="Panadería y Desayunos">Panadería y Desayunos</option>
+                            <option value="Lácteos y Quesos">Lácteos y Quesos</option>
+                            <option value="Salsas y Condimentos">Salsas y Condimentos</option>
+                            <option value="Bebidas y Snacks">Bebidas y Snacks</option>
+                            <option value="Hogar y Mascotas">Hogar y Mascotas</option>
+                        </select>
+                        <input type="text" id="add-item-qty" placeholder="Cant. (ej. 2 lb)" class="w-24 px-2.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs focus:outline-none">
+                        <input type="number" step="0.01" min="0" required id="add-item-price" placeholder="Precio $" class="w-24 px-2.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs focus:outline-none">
+                        <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer">
+                            <i class="fa-solid fa-plus mr-1"></i> Añadir
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div class="relative w-full md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+                        <input type="text" id="search-input" oninput="renderShoppingTable()" placeholder="Buscar en la lista..." class="w-full pl-9 pr-3 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div id="category-filters" class="flex flex-wrap gap-1.5 w-full md:w-auto">
+                        <!-- Dynamic category pills -->
+                    </div>
+                </div>
+
+                <!-- Responsive Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-stone-200 dark:border-stone-800 text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                                <th class="py-3 px-3">Producto</th>
+                                <th class="py-3 px-3">Categoría</th>
+                                <th class="py-3 px-3">Cantidad / Peso</th>
+                                <th class="py-3 px-3 text-right">Precio ($)</th>
+                                <th class="py-3 px-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shopping-table-body" class="divide-y divide-stone-100 dark:divide-stone-800 text-xs sm:text-sm">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-stone-50 dark:bg-stone-800/60 font-extrabold text-stone-900 dark:text-white">
+                                <td colspan="3" class="py-3.5 px-3 text-right text-xs uppercase tracking-wider text-stone-500">Total Lista Actual (Incl. ITBMS):</td>
+                                <td id="table-total-price" class="py-3.5 px-3 text-right text-base text-emerald-600 dark:text-emerald-400">$134.67</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 3: MENÚ QUINCENAL (15 DÍAS — 2 ADULTOS + 1 NIÑO DE 8 AÑOS)        -->
+        <!-- ===================================================================== -->
+        <section id="section-menu" class="tab-section hidden space-y-6">
+            
+            <!-- Header Banner & Sync All Action -->
+            <div class="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white rounded-2xl p-6 shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="space-y-1.5">
+                    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/15 text-emerald-100 text-xs font-semibold">
+                        <i class="fa-solid fa-people-roof"></i> Motor de Compras: 2 Adultos + 1 Niño (8 años) × 15 Días
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Menú Quincenal Planificado</h2>
+                    <p class="text-xs sm:text-sm text-emerald-100/90 max-w-2xl">
+                        El menú define automáticamente los ingredientes y cantidades requeridas para <strong>39 raciones equivalentes de adulto en 15 días</strong> (2.6 porciones/comida). Sincroniza los ingredientes faltantes directo a tu lista de compras o pendientes.
+                    </p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2.5 shrink-0">
+                    <button onclick="syncMenuToShoppingList()" class="px-4 py-3 rounded-xl bg-white text-emerald-900 hover:bg-emerald-50 font-extrabold text-xs sm:text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-wand-magic-sparkles text-emerald-600"></i>
+                        <span>Sincronizar Menú (15d) a Lista</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desayunos Flexibles & Lonchera Niño (8 años) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-mug-saucer text-amber-500"></i> Desayunos Flexibles (15 Días — Familia)
+                        </h3>
+                        <button onclick="sendBreakfastToList()" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-lg transition cursor-pointer">
+                            + Enviar faltantes
+                        </button>
+                    </div>
+                    <div id="breakfast-ingredients-badges" class="flex flex-wrap gap-2">
+                        <!-- Dynamic badges -->
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-apple-whole text-rose-500"></i> Frutas, Meriendas & Niño (8 años)
+                        </h3>
+                        <span class="text-[11px] font-semibold text-stone-400">15 días escolares/casa</span>
+                    </div>
+                    <div id="snacks-ingredients-badges" class="flex flex-wrap gap-2">
+                        <!-- Dynamic badges -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Schedule Cards (Repetido x2 semanas = 14 días + Día 15 flexible) -->
+            <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                    <div>
+                        <h3 class="font-extrabold text-base text-stone-900 dark:text-white">Plan Semanal Base (Ciclo ×2 Semanas = 15 Días)</h3>
+                        <p class="text-xs text-stone-500">Cada ingrediente muestra su estado en tiempo real: <span class="text-emerald-600 font-semibold">En Lista</span>, <span class="text-amber-600 font-semibold">En Pendientes</span> o <span class="text-rose-600 font-semibold">Falta</span>.</p>
+                    </div>
+                    <span class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+                        Factor familiar: 2 Adultos + 1 Niño (8a)
+                    </span>
+                </div>
+
+                <div id="menu-days-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic Day Cards -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 4: SIMULADOR & OPTIMIZADOR DE PRESUPUESTO ($150.00 MÁXIMO)        -->
+        <!-- ===================================================================== -->
+        <section id="section-simulator" class="tab-section hidden space-y-6">
+            
+            <!-- Top KPI Summary for Simulator -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Tope Máximo Fijo</span>
+                    <p class="text-3xl font-extrabold text-stone-900 dark:text-white mt-1">$150.00</p>
+                    <p class="text-xs text-stone-500 mt-1">Presupuesto quincenal estricto de casa</p>
+                </div>
+
+                <div class="bg-white dark:bg-stone-900 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Proyección Simulada Total</span>
+                    <p id="sim-projected-total" class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">$148.50</p>
+                    <p id="sim-projected-breakdown" class="text-xs text-stone-500 mt-1">Lista actual + pendientes seleccionados + ajustes</p>
+                </div>
+
+                <div id="sim-balance-card" class="bg-emerald-50 dark:bg-emerald-950/40 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Balance vs. Tope $150</span>
+                    <p id="sim-balance-amount" class="text-3xl font-extrabold text-emerald-700 dark:text-emerald-300 mt-1">+$1.50</p>
+                    <p id="sim-balance-msg" class="text-xs text-emerald-800 dark:text-emerald-200 mt-1 font-medium">Dentro del límite permitido</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left 7 Cols: What-If Controls & Pending Inclusion Simulator -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- 1. Simulador de Pendientes a Comprar -->
+                    <div class="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-extrabold text-base text-stone-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-scale-balanced text-amber-500"></i> 1. Simulador de Compra de Pendientes
+                                </h3>
+                                <p class="text-xs text-stone-500">Activa o ajusta el precio estimado de los pendientes para ver si caben en el remanente de los $150.00.</p>
+                            </div>
+                            <button onclick="resetSimulator()" class="text-xs font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-white underline cursor-pointer">Reiniciar</button>
+                        </div>
+
+                        <div id="sim-pending-toggles" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            <!-- Dynamic pending simulation rows -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Simulador de Inflación / Variación de Precios por Categoría -->
+                    <div class="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+                        <div>
+                            <h3 class="font-extrabold text-base text-stone-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-trend-up text-emerald-600"></i> 2. Escenario de Variación de Precios (%)
+                            </h3>
+                            <p class="text-xs text-stone-500">Proyecta el impacto en tus $150.00 si suben o bajan los precios en la próxima quincena.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span>🥩 Carnes y Proteínas</span>
+                                    <span id="slider-carnes-val" class="text-emerald-600 font-bold">0%</span>
+                                </div>
+                                <input type="range" id="slider-carnes" min="-20" max="30" value="0" oninput="runSimulator()" class="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span>🥗 Vegetales, Frutas y Tubérculos</span>
+                                    <span id="slider-vegetales-val" class="text-emerald-600 font-bold">0%</span>
+                                </div>
+                                <input type="range" id="slider-vegetales" min="-25" max="30" value="0" oninput="runSimulator()" class="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span>🛒 Resto del Súper (Granos, Lácteos, Hogar)</span>
+                                    <span id="slider-otros-val" class="text-emerald-600 font-bold">0%</span>
+                                </div>
+                                <input type="range" id="slider-otros" min="-20" max="30" value="0" oninput="runSimulator()" class="w-full h-2 bg-stone-200 dark:bg-stone-700 rounded-lg cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right 5 Cols: Smart Savings Optimizer & Family Unit Economics -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- 3. Optimizador de Ahorro Inteligente -->
+                    <div class="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+                        <div>
+                            <h3 class="font-extrabold text-base text-stone-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-piggy-bank text-emerald-600"></i> 3. Optimizador de Sustituciones
+                            </h3>
+                            <p class="text-xs text-stone-500">Activa estrategias reales basadas en tu historial para mantenerte bajo $150.00:</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="flex items-start justify-between gap-3 p-3 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200/80 dark:border-stone-700 cursor-pointer">
+                                <div class="flex items-start gap-2.5">
+                                    <input type="checkbox" id="opt-chuleta" onchange="runSimulator()" class="mt-1 w-4 h-4 rounded text-emerald-600">
+                                    <div>
+                                        <p class="text-xs font-bold text-stone-900 dark:text-white">Chuleta especial vs. Costillitas</p>
+                                        <p class="text-[11px] text-stone-500">Ahorro comprobado en factura 16/11 manteniendo proteína.</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-emerald-600 whitespace-nowrap">-$3.50</span>
+                            </label>
+
+                            <label class="flex items-start justify-between gap-3 p-3 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200/80 dark:border-stone-700 cursor-pointer">
+                                <div class="flex items-start gap-2.5">
+                                    <input type="checkbox" id="opt-feria" onchange="runSimulator()" class="mt-1 w-4 h-4 rounded text-emerald-600">
+                                    <div>
+                                        <p class="text-xs font-bold text-stone-900 dark:text-white">Vegetales/Tubérculos en puesto local</p>
+                                        <p class="text-[11px] text-stone-500">Yuca, plátano, aguacate y cebolla ~20% más baratos.</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-emerald-600 whitespace-nowrap">-$4.20</span>
+                            </label>
+
+                            <label class="flex items-start justify-between gap-3 p-3 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200/80 dark:border-stone-700 cursor-pointer">
+                                <div class="flex items-start gap-2.5">
+                                    <input type="checkbox" id="opt-snacks" onchange="runSimulator()" class="mt-1 w-4 h-4 rounded text-emerald-600">
+                                    <div>
+                                        <p class="text-xs font-bold text-stone-900 dark:text-white">Ajustar snacks y galletas surtidas</p>
+                                        <p class="text-[11px] text-stone-500">Priorizar fruta fresca para lonchera del niño (8 años).</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-extrabold text-emerald-600 whitespace-nowrap">-$4.80</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 4. Métricas de Rendimiento Familiar (15 Días) -->
+                    <div class="bg-gradient-to-br from-stone-900 to-stone-800 text-white p-6 rounded-2xl shadow-md space-y-4">
+                        <h3 class="font-extrabold text-sm uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie"></i> Economía Familiar (15 Días)
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="bg-white/10 p-3 rounded-xl">
+                                <span class="text-stone-300 block">Comidas Cubiertas</span>
+                                <span class="text-lg font-extrabold">45 tiempos</span>
+                                <span class="text-[10px] text-stone-400 block">15 almuerzos + 15 cenas + 15 desayunos</span>
+                            </div>
+                            <div class="bg-white/10 p-3 rounded-xl">
+                                <span class="text-stone-300 block">Costo / Plato Familiar</span>
+                                <span id="sim-cost-per-meal" class="text-lg font-extrabold text-emerald-400">$3.30</span>
+                                <span class="text-[10px] text-stone-400 block">Para los 3 integrantes juntos</span>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-stone-300 leading-relaxed">
+                            Con un tope de <strong>$150.00</strong> quincenales, cada integrante consume un promedio de <strong id="sim-daily-person">$3.85/día</strong> (adulto) y <strong id="sim-daily-kid">$2.31/día</strong> (niño de 8 años).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 5: SINCRONIZAR CON GOOGLE SHEETS                                  -->
+        <!-- ===================================================================== -->
+        <section id="section-sheets" class="tab-section hidden space-y-6">
+            <div class="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm p-6 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-100 dark:border-stone-800 pb-5">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-bold mb-2">
+                            <i class="fa-solid fa-table"></i> Hoja Vinculada: Control de Mercado Quincenal - Casa 🏡
+                        </span>
+                        <h2 class="text-xl font-extrabold text-stone-900 dark:text-white">Sincronización y Creación de Pestañas por Fecha</h2>
+                        <p class="text-xs sm:text-sm text-stone-500 mt-1">
+                            Al crear una nueva lista quincenal en esta web, puedes generar automáticamente su pestaña correspondiente (ej. <code class="bg-stone-100 dark:bg-stone-800 px-1.5 py-0.5 rounded font-mono text-emerald-600">Quincena 30-11-2026</code>) en tu Google Sheet.
+                        </p>
+                    </div>
+                    <a href="https://docs.google.com/spreadsheets/d/14HQcFP1zY52tNY2JgV-1mrvrGDtjS97tLt0ZaVK6uc4/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-2 self-start shrink-0">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Google Sheet
+                    </a>
+                </div>
+
+                <!-- Step 1: Immediate Copy/Export (Zero Setup) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 space-y-3">
+                        <h3 class="font-bold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center font-bold">1</span>
+                            Exportación Instantánea (Sin Configuración)
+                        </h3>
+                        <p class="text-xs text-stone-500">
+                            Copia la quincena activa (<strong id="sheets-active-period-name">Quincena 16-11-2026</strong>) en formato compatible con Google Sheets y pégala directamente en tu hoja con <kbd class="px-1.5 py-0.5 bg-white dark:bg-stone-900 border rounded text-[10px]">Ctrl+V</kbd>.
+                        </p>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <button onclick="copyForGoogleSheets()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-regular fa-copy"></i> Copiar Tabla para Sheets
+                            </button>
+                            <button onclick="downloadCSV()" class="px-3.5 py-2 rounded-xl bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-file-csv text-emerald-600"></i> Descargar CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Automated Webhook via Google Apps Script -->
+                    <div class="p-5 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 space-y-3">
+                        <h3 class="font-bold text-sm text-stone-900 dark:text-white flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center font-bold">2</span>
+                            Creación Automática de Pestañas (Webhook)
+                        </h3>
+                        <p class="text-xs text-stone-500">
+                            Pega la URL de tu Web App de Google Apps Script para que cada vez que crees una nueva quincena aquí, se cree la pestaña en el Spreadsheet automáticamente.
+                        </p>
+                        <div class="flex gap-2">
+                            <input type="url" id="apps-script-url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button onclick="saveWebhookUrl()" class="px-3 py-2 rounded-xl bg-stone-900 dark:bg-emerald-600 text-white text-xs font-bold cursor-pointer">Guardar</button>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                            <button onclick="pushCurrentPeriodToSheets()" class="text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar quincena actual ahora
+                            </button>
+                            <button onclick="copyAppsScriptCode()" class="text-xs font-semibold text-stone-500 hover:text-stone-800 dark:hover:text-white flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-code"></i> Copiar código Apps Script
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible Apps Script Code Box -->
+                <div class="bg-stone-950 text-stone-200 rounded-2xl p-4 border border-stone-800">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-terminal mr-1.5"></i>Código Google Apps Script (Extensiones → Apps Script en tu Sheet)</span>
+                        <button onclick="copyAppsScriptCode()" class="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-white transition cursor-pointer">
+                            <i class="fa-regular fa-copy mr-1"></i> Copiar Script
+                        </button>
+                    </div>
+                    <pre id="apps-script-snippet" class="text-[11px] font-mono text-stone-300 overflow-x-auto leading-relaxed">function doPost(e) {
+  var ss = SpreadsheetApp.openById("14HQcFP1zY52tNY2JgV-1mrvrGDtjS97tLt0ZaVK6uc4");
+  var data = JSON.parse(e.postData.contents);
+  var sheetName = data.sheetName; // Ej: "Quincena 30-11-2026"
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+  } else {
+    sheet.clear();
+  }
+  sheet.appendRow(["Categoría", "Producto", "Cantidad / Peso", "Precio ($)", "Estado", "Notas"]);
+  sheet.getRange(1, 1, 1, 6).setFontWeight("bold").setBackground("#065f46").setFontColor("#ffffff");
+  data.items.forEach(function(item) {
+    sheet.appendRow([item.category, item.name, item.qty, item.price, "Comprado", item.note || ""]);
+  });
+  sheet.appendRow(["", "", "TOTAL QUINCENA", data.total, "Tope: $150.00", ""]);
+  return ContentService.createTextOutput(JSON.stringify({status: "ok", sheet: sheetName})).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 py-5 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500">
+            <p><strong>Mercado Casa — Eder & Tutti</strong> • Presupuesto Quincenal Fijo: $150.00 • 2 Adultos + 1 Niño (8 años)</p>
+            <div class="flex items-center gap-4">
+                <button onclick="resetAllData()" class="text-stone-400 hover:text-rose-600 transition cursor-pointer">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>Restaurar datos base (16/11)
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal: Nueva Lista Quincenal por Fecha -->
+    <div id="new-period-modal" class="fixed inset-0 z-50 hidden bg-stone-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-stone-900 rounded-2xl max-w-md w-full p-6 border border-stone-200 dark:border-stone-800 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-stone-100 dark:border-stone-800 pb-3">
+                <h3 class="font-extrabold text-base text-stone-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-plus text-emerald-600"></i> Crear Nueva Lista Quincenal
+                </h3>
+                <button onclick="closeNewPeriodModal()" class="text-stone-400 hover:text-stone-700 dark:hover:text-white cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="createNewPeriod(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1">Fecha de la Quincena (Días 15 o 30)</label>
+                    <input type="date" id="new-period-date" required value="2026-11-30" class="w-full px-3.5 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <p class="text-[11px] text-stone-500 mt-1">Se creará con el nombre de hoja: <strong id="preview-sheet-name" class="text-emerald-600">Quincena 30-11-2026</strong></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1.5">Base inicial para esta lista</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/60">
+                            <input type="radio" name="period-template" value="menu" checked class="text-emerald-600">
+                            <div>
+                                <p class="text-xs font-bold text-stone-900 dark:text-white">Generar desde Menú Quincenal (15 días)</p>
+                                <p class="text-[11px] text-stone-500">Calcula cantidades para 2 adultos + 1 niño (8 años).</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/60">
+                            <input type="radio" name="period-template" value="clone" class="text-emerald-600">
+                            <div>
+                                <p class="text-xs font-bold text-stone-900 dark:text-white">Duplicar Quincena Actual</p>
+                                <p class="text-[11px] text-stone-500">Copia los productos y precios de referencia actuales.</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-2.5 rounded-xl border border-stone-200 dark:border-stone-700 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/60">
+                            <input type="radio" name="period-template" value="empty" class="text-emerald-600">
+                            <div>
+                                <p class="text-xs font-bold text-stone-900 dark:text-white">Lista en Blanco</p>
+                                <p class="text-[11px] text-stone-500">Empezar desde $0.00 con los pendientes habituales.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800">
+                    <input type="checkbox" id="sync-sheets-on-create" checked class="rounded text-emerald-600">
+                    <label for="sync-sheets-on-create" class="text-xs font-medium text-emerald-900 dark:text-emerald-200 cursor-pointer">
+                        Crear pestaña en Google Sheets automáticamente (o copiar al portapapeles)
+                    </label>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeNewPeriodModal()" class="px-4 py-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-xs font-bold cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm cursor-pointer">Crear Quincena</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- APPLICATION LOGIC (SINGLE SOURCE OF TRUTH & FULL SYNCHRONIZATION)         -->
+    <!-- ========================================================================= -->
+    <script>
+        const MAX_BUDGET = 150.00;
+        const FAMILY_FACTOR = 2.6; // 2 adultos (2.0) + 1 niño de 8 años (0.6)
+        const SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/14HQcFP1zY52tNY2JgV-1mrvrGDtjS97tLt0ZaVK6uc4/edit?usp=sharing";
+
+        // 1. REAL CONCILED DATA FROM INVOICE 16-11-2026 (48 items = $134.67 exact)
+        const BASE_INVOICE_16_11 = [
+            { id: 1, name: "Maní Mix / Surtidito", category: "Bebidas y Snacks", qty: "1 paq", price: 0.80 },
+            { id: 2, name: "Chuleta Especial de Cerdo", category: "Carnes y Proteínas", qty: "0.995 kg", price: 5.94 },
+            { id: 3, name: "Filete Pechuga de Pollo", category: "Carnes y Proteínas", qty: "1.282 kg (4 und)", price: 8.95 },
+            { id: 4, name: "Nuggets de Pollo", category: "Carnes y Proteínas", qty: "1 bolsa", price: 3.47 },
+            { id: 5, name: "Filetes de Pescado (Basa)", category: "Carnes y Proteínas", qty: "2 bolsas", price: 8.46 },
+            { id: 6, name: "Muslo Encuentro de Pollo", category: "Carnes y Proteínas", qty: "0.429 kg (2 und)", price: 0.96 },
+            { id: 7, name: "Chorizo Rimi (c/ desc. -$0.14)", category: "Carnes y Proteínas", qty: "1 paq", price: 2.85 },
+            { id: 8, name: "Carne de Freír", category: "Carnes y Proteínas", qty: "1.031 kg", price: 6.55 },
+            { id: 9, name: "Bistec Picado", category: "Carnes y Proteínas", qty: "0.98 kg (2 lb)", price: 7.91 },
+            { id: 10, name: "Salchichas Hot Dogs", category: "Carnes y Proteínas", qty: "2 paq", price: 3.90 },
+            { id: 11, name: "Arepitas con Queso", category: "Panadería y Desayunos", qty: "1 paq", price: 3.06 },
+            { id: 12, name: "Tocino / Bacon", category: "Carnes y Proteínas", qty: "0.542 kg", price: 4.49 },
+            { id: 13, name: "Crema Agria (Sour Cream)", category: "Lácteos y Quesos", qty: "1 und", price: 2.26 },
+            { id: 14, name: "Pan Especial de Molde", category: "Panadería y Desayunos", qty: "1 und", price: 1.84 },
+            { id: 15, name: "Pan para Hot Dogs", category: "Panadería y Desayunos", qty: "2 paq", price: 3.16 },
+            { id: 16, name: "Galletas Boquitas Poz", category: "Bebidas y Snacks", qty: "1 paq", price: 1.05 },
+            { id: 17, name: "Salsas Trío Primos", category: "Salsas y Condimentos", qty: "1 pack", price: 1.67 },
+            { id: 18, name: "Ajo Molido con Mantequilla", category: "Salsas y Condimentos", qty: "1 frasco", price: 0.62 },
+            { id: 19, name: "Tortillas Panameñas de Maíz", category: "Panadería y Desayunos", qty: "1 paq", price: 0.96 },
+            { id: 20, name: "Guineo", category: "Vegetales, Frutas y Tubérculos", qty: "0.62 kg", price: 0.63 },
+            { id: 21, name: "Plátanos Verdes Nacionales", category: "Vegetales, Frutas y Tubérculos", qty: "1.155 kg", price: 1.25 },
+            { id: 22, name: "Snacks Mejitos Fiesta (c/ desc. -$0.34)", category: "Bebidas y Snacks", qty: "1 paq", price: 1.90 },
+            { id: 23, name: "Tomate Perita", category: "Vegetales, Frutas y Tubérculos", qty: "0.665 kg", price: 1.81 },
+            { id: 24, name: "Sopas Chinas Nissin Pollo", category: "Granos y Enlatados", qty: "3 und", price: 2.16 },
+            { id: 25, name: "Leche Entera", category: "Lácteos y Quesos", qty: "2 und", price: 3.28 },
+            { id: 26, name: "Galletas Polar Soda", category: "Bebidas y Snacks", qty: "1 paq", price: 1.56 },
+            { id: 27, name: "Mac & Cheese (Macarrón)", category: "Granos y Enlatados", qty: "2 cajas", price: 2.82 },
+            { id: 28, name: "Queso Parmesano en Polvo", category: "Lácteos y Quesos", qty: "1 und", price: 1.38 },
+            { id: 29, name: "Lentejas", category: "Granos y Enlatados", qty: "1 lb", price: 1.21 },
+            { id: 30, name: "Palomitas de Maíz", category: "Bebidas y Snacks", qty: "2 paq", price: 1.78 },
+            { id: 31, name: "Papel Higiénico Rosal", category: "Hogar y Mascotas", qty: "1 paq", price: 7.50 },
+            { id: 32, name: "Papas América", category: "Vegetales, Frutas y Tubérculos", qty: "1.63 kg", price: 4.81 },
+            { id: 33, name: "Ketchup Maggi", category: "Salsas y Condimentos", qty: "1 und", price: 1.44 },
+            { id: 34, name: "Ciruela Roja", category: "Vegetales, Frutas y Tubérculos", qty: "0.415 kg", price: 2.24 },
+            { id: 35, name: "Limón Persa", category: "Vegetales, Frutas y Tubérculos", qty: "0.42 kg", price: 0.78 },
+            { id: 36, name: "Mandarinas", category: "Vegetales, Frutas y Tubérculos", qty: "0.685 kg", price: 2.03 },
+            { id: 37, name: "Maíz Enlatado Primor", category: "Granos y Enlatados", qty: "2 latas", price: 2.00 },
+            { id: 38, name: "Kiwis / Fruta Fresca", category: "Vegetales, Frutas y Tubérculos", qty: "0.335 kg", price: 1.80 },
+            { id: 39, name: "Pasas", category: "Granos y Enlatados", qty: "1 cajita", price: 0.88 },
+            { id: 40, name: "Velas", category: "Hogar y Mascotas", qty: "2 und", price: 2.40 },
+            { id: 41, name: "Yogur Bonlac", category: "Lácteos y Quesos", qty: "2 und", price: 1.98 },
+            { id: 42, name: "Maggi Mi Sazón (Sobres)", category: "Salsas y Condimentos", qty: "1 pack", price: 0.69 },
+            { id: 43, name: "Caja de Pancakes Clásicos", category: "Panadería y Desayunos", qty: "1 caja", price: 2.38 },
+            { id: 44, name: "Manzanas", category: "Vegetales, Frutas y Tubérculos", qty: "0.695 kg", price: 1.78 },
+            { id: 45, name: "Comida de Perro Ringo", category: "Hogar y Mascotas", qty: "1 bolsa", price: 6.22 },
+            { id: 46, name: "Agua Purificada", category: "Bebidas y Snacks", qty: "2 botellas", price: 2.10 },
+            { id: 47, name: "Granos de Café", category: "Bebidas y Snacks", qty: "0.335 kg", price: 4.27 },
+            { id: 48, name: "ITBMS (7% artículos gravados)", category: "Hogar y Mascotas", qty: "Impuesto", price: 0.69 }
+        ]; // Sum = 134.67 exact
+
+        // 2. INITIAL PENDING ITEMS
+        const BASE_PENDING_ITEMS = [
+            { id: 201, name: "Frijoles negros", category: "Granos y Enlatados", qty: "2 lb", estPrice: 2.10 },
+            { id: 202, name: "Yuca fresca", category: "Vegetales, Frutas y Tubérculos", qty: "3 lb", estPrice: 1.95 },
+            { id: 203, name: "Aguacate", category: "Vegetales, Frutas y Tubérculos", qty: "3 und", estPrice: 3.00 },
+            { id: 204, name: "Ingredientes para ensalada (lechuga/pepino)", category: "Vegetales, Frutas y Tubérculos", qty: "1 combo", estPrice: 2.50 },
+            { id: 205, name: "Cebolla y ajo frescos", category: "Vegetales, Frutas y Tubérculos", qty: "1.5 lb", estPrice: 1.85 },
+            { id: 206, name: "Queso (desayunos, arepas y sándwiches)", category: "Lácteos y Quesos", qty: "1.5 lb", estPrice: 4.50 },
+            { id: 207, name: "Chipotle en adobo", category: "Salsas y Condimentos", qty: "1 lata", estPrice: 1.75 },
+            { id: 208, name: "Pasta / Salsa adicional para pasta", category: "Granos y Enlatados", qty: "2 paq", estPrice: 2.40 }
+        ];
+
+        // 3. 15-DAY FAMILY MENU DEFINITION (2 Adultos + 1 Niño 8 años = 2.6 raciones/comida)
+        const WEEKLY_MENU_PLAN = [
+            {
+                day: "Lunes",
+                lunch: "Pasta con pollo",
+                dinner: "Hot dogs",
+                ingredients: [
+                    { name: "Filete Pechuga de Pollo", match: "pechuga", qty15d: "4 und (2x sem)", estPrice: 8.95, cat: "Carnes y Proteínas" },
+                    { name: "Pasta / Salsa adicional para pasta", match: "pasta", qty15d: "2 paq (15d)", estPrice: 2.40, cat: "Granos y Enlatados" },
+                    { name: "Salchichas Hot Dogs", match: "salchicha", qty15d: "2 paq (4 cenas)", estPrice: 3.90, cat: "Carnes y Proteínas" },
+                    { name: "Pan para Hot Dogs", match: "pan para hot", qty15d: "2 paq (16 und)", estPrice: 3.16, cat: "Panadería y Desayunos" }
+                ]
+            },
+            {
+                day: "Martes",
+                lunch: "Puré de papas con bistec picado",
+                dinner: "Sándwiches de queso y bacon",
+                ingredients: [
+                    { name: "Bistec Picado", match: "bistec", qty15d: "2.5 lb (2x sem)", estPrice: 7.91, cat: "Carnes y Proteínas" },
+                    { name: "Papas América", match: "papa", qty15d: "1.65 kg (15d)", estPrice: 4.81, cat: "Vegetales, Frutas y Tubérculos" },
+                    { name: "Pan Especial de Molde", match: "pan especial", qty15d: "2 moldes", estPrice: 3.68, cat: "Panadería y Desayunos" },
+                    { name: "Tocino / Bacon", match: "tocino", qty15d: "1.5 paq", estPrice: 4.49, cat: "Carnes y Proteínas" },
+                    { name: "Queso (desayunos, arepas y sándwiches)", match: "queso", qty15d: "1.5 lb", estPrice: 4.50, cat: "Lácteos y Quesos" }
+                ]
+            },
+            {
+                day: "Miércoles",
+                lunch: "Arroz, lentejas y pollo",
+                dinner: "Hot dogs",
+                ingredients: [
+                    { name: "Lentejas", match: "lenteja", qty15d: "1.5 lb (2x sem)", estPrice: 1.80, cat: "Granos y Enlatados" },
+                    { name: "Muslo Encuentro de Pollo", match: "muslo", qty15d: "4 und", estPrice: 1.92, cat: "Carnes y Proteínas" },
+                    { name: "Cebolla y ajo frescos", match: "cebolla", qty15d: "1.5 lb", estPrice: 1.85, cat: "Vegetales, Frutas y Tubérculos" }
+                ]
+            },
+            {
+                day: "Jueves",
+                lunch: "Bowl arroz, frijoles negros, maíz y pollo c/ crema agria y chipotle",
+                dinner: "Sándwiches de queso y bacon",
+                ingredients: [
+                    { name: "Frijoles negros", match: "frijoles", qty15d: "2 lb (2x sem)", estPrice: 2.10, cat: "Granos y Enlatados" },
+                    { name: "Maíz Enlatado Primor", match: "maíz", qty15d: "2 latas", estPrice: 2.00, cat: "Granos y Enlatados" },
+                    { name: "Crema Agria (Sour Cream)", match: "crema agria", qty15d: "1 und", estPrice: 2.26, cat: "Lácteos y Quesos" },
+                    { name: "Chipotle en adobo", match: "chipotle", qty15d: "1 lata", estPrice: 1.75, cat: "Salsas y Condimentos" }
+                ]
+            },
+            {
+                day: "Viernes",
+                lunch: "Pescado y patacones",
+                dinner: "Arepitas con queso y bacon",
+                ingredients: [
+                    { name: "Filetes de Pescado (Basa)", match: "pescado", qty15d: "2 bolsas (2x sem)", estPrice: 8.46, cat: "Carnes y Proteínas" },
+                    { name: "Plátanos Verdes Nacionales", match: "plátano", qty15d: "1.5 kg (6 und)", estPrice: 1.60, cat: "Vegetales, Frutas y Tubérculos" },
+                    { name: "Arepitas con Queso", match: "arepitas", qty15d: "2 paq (4 cenas)", estPrice: 6.12, cat: "Panadería y Desayunos" }
+                ]
+            },
+            {
+                day: "Sábado",
+                lunch: "Chuleta especial / Costillitas, ensalada, aguacate y arroz",
+                dinner: "Mac & cheese con chorizo",
+                ingredients: [
+                    { name: "Chuleta Especial de Cerdo", match: "chuleta", qty15d: "1.2 kg (2x sem)", estPrice: 5.94, cat: "Carnes y Proteínas" },
+                    { name: "Ingredientes para ensalada (lechuga/pepino)", match: "ensalada", qty15d: "2 combos", estPrice: 2.50, cat: "Vegetales, Frutas y Tubérculos" },
+                    { name: "Aguacate", match: "aguacate", qty15d: "4 und", estPrice: 3.50, cat: "Vegetales, Frutas y Tubérculos" },
+                    { name: "Mac & Cheese (Macarrón)", match: "mac", qty15d: "2 cajas", estPrice: 2.82, cat: "Granos y Enlatados" },
+                    { name: "Chorizo Rimi", match: "chorizo", qty15d: "2 paq", estPrice: 5.70, cat: "Carnes y Proteínas" }
+                ]
+            },
+            {
+                day: "Domingo",
+                lunch: "Yuca al mojo y carne frita",
+                dinner: "Arepitas con queso y bacon",
+                ingredients: [
+                    { name: "Carne de Freír", match: "carne de freír", qty15d: "1.2 kg (2x sem)", estPrice: 6.55, cat: "Carnes y Proteínas" },
+                    { name: "Yuca fresca", match: "yuca", qty15d: "3.5 lb (2x sem)", estPrice: 2.20, cat: "Vegetales, Frutas y Tubérculos" },
+                    { name: "Limón Persa", match: "limón", qty15d: "0.5 kg", estPrice: 0.78, cat: "Vegetales, Frutas y Tubérculos" }
+                ]
+            }
+        ];
+
+        const BREAKFAST_ITEMS = [
+            { name: "Caja de Pancakes Clásicos", match: "pancake", qty15d: "1 caja", estPrice: 2.38, cat: "Panadería y Desayunos" },
+            { name: "Tortillas Panameñas de Maíz", match: "tortillas", qty15d: "2 paq", estPrice: 1.92, cat: "Panadería y Desayunos" },
+            { name: "Leche Entera", match: "leche", qty15d: "3 litros", estPrice: 4.92, cat: "Lácteos y Quesos" },
+            { name: "Granos de Café", match: "café", qty15d: "350 g", estPrice: 4.27, cat: "Bebidas y Snacks" }
+        ];
+
+        const KID_SNACK_ITEMS = [
+            { name: "Yogur Bonlac", match: "yogur", qty15d: "4 und (niño 8a)", estPrice: 3.96, cat: "Lácteos y Quesos" },
+            { name: "Manzanas", match: "manzana", qty15d: "1 kg", estPrice: 2.10, cat: "Vegetales, Frutas y Tubérculos" },
+            { name: "Mandarinas", match: "mandarina", qty15d: "1 kg", estPrice: 2.20, cat: "Vegetales, Frutas y Tubérculos" },
+            { name: "Guineo", match: "guineo", qty15d: "1.2 kg", estPrice: 1.10, cat: "Vegetales, Frutas y Tubérculos" }
+        ];
+
+        // =========================================================================
+        // APPLICATION STATE (PERSISTED IN LOCALSTORAGE)
+        // =========================================================================
+        let appState = {
+            activePeriodId: "Quincena 16-11-2026",
+            webhookUrl: "",
+            periods: {
+                "Quincena 16-11-2026": {
+                    id: "Quincena 16-11-2026",
+                    date: "2026-11-16",
+                    items: JSON.parse(JSON.stringify(BASE_INVOICE_16_11)),
+                    pending: JSON.parse(JSON.stringify(BASE_PENDING_ITEMS))
+                }
+            }
+        };
+
+        let activeCategoryFilter = "Todas";
+        let categoryChartInstance = null;
+        let simPendingSelection = {}; // { id: boolean }
+
+        function loadState() {
+            const saved = localStorage.getItem("mercado_casa_eder_tutti_v2");
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.periods && Object.keys(parsed.periods).length > 0) {
+                        appState = parsed;
+                    }
+                } catch (e) {
+                    console.error("Error loading saved state:", e);
+                }
+            }
+            if (!appState.periods[appState.activePeriodId]) {
+                appState.activePeriodId = Object.keys(appState.periods)[0];
+            }
+            document.getElementById("apps-script-url").value = appState.webhookUrl || "";
+        }
+
+        function saveState() {
+            localStorage.setItem("mercado_casa_eder_tutti_v2", JSON.stringify(appState));
+        }
+
+        function getActivePeriod() {
+            return appState.periods[appState.activePeriodId];
+        }
+
+        // =========================================================================
+        // TOAST NOTIFICATIONS
+        // =========================================================================
+        function showToast(message, type = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            const colors = type === "success"
+                ? "bg-stone-900 text-white border-emerald-500"
+                : type === "warning"
+                ? "bg-amber-900 text-white border-amber-400"
+                : "bg-blue-900 text-white border-blue-400";
+            const icon = type === "success" ? "fa-circle-check text-emerald-400" : "fa-circle-info text-amber-300";
+
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border-l-4 shadow-xl text-xs font-semibold transition-all duration-300 ${colors}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(8px)";
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        // =========================================================================
+        // NAVIGATION & PERIOD SWITCHING
+        // =========================================================================
+        function switchTab(tabId) {
+            document.querySelectorAll(".tab-section").forEach(el => el.classList.add("hidden"));
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.remove("bg-emerald-600", "text-white", "shadow-sm");
+                btn.classList.add("text-stone-600", "dark:text-stone-300", "hover:bg-stone-100", "dark:hover:bg-stone-800");
+            });
+
+            document.getElementById(`section-${tabId}`).classList.remove("hidden");
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove("text-stone-600", "dark:text-stone-300", "hover:bg-stone-100", "dark:hover:bg-stone-800");
+            activeBtn.classList.add("bg-emerald-600", "text-white", "shadow-sm");
+
+            if (tabId === "overview") renderOverview();
+            if (tabId === "simulator") renderSimulator();
+            if (tabId === "menu") renderMenu();
+        }
+
+        function renderPeriodSelector() {
+            const selector = document.getElementById("period-selector");
+            selector.innerHTML = "";
+            Object.keys(appState.periods).forEach(periodId => {
+                const opt = document.createElement("option");
+                opt.value = periodId;
+                opt.textContent = periodId;
+                if (periodId === appState.activePeriodId) opt.selected = true;
+                selector.appendChild(opt);
+            });
+        }
+
+        function switchPeriod(periodId) {
+            if (!appState.periods[periodId]) return;
+            appState.activePeriodId = periodId;
+            simPendingSelection = {};
+            saveState();
+            syncAllViews();
+            showToast(`Cambiado a ${periodId}`);
+        }
+
+        // =========================================================================
+        // NEW PERIOD CREATION + GOOGLE SHEETS SYNC
+        // =========================================================================
+        function openNewPeriodModal() {
+            const modal = document.getElementById("new-period-modal");
+            modal.classList.remove("hidden");
+            updatePreviewSheetName();
+        }
+
+        function closeNewPeriodModal() {
+            document.getElementById("new-period-modal").classList.add("hidden");
+        }
+
+        document.getElementById("new-period-date").addEventListener("change", updatePreviewSheetName);
+
+        function formatDateToDDMMYYYY(isoDate) {
+            const [y, m, d] = isoDate.split("-");
+            return `${d}-${m}-${y}`;
+        }
+
+        function updatePreviewSheetName() {
+            const iso = document.getElementById("new-period-date").value;
+            if (!iso) return;
+            document.getElementById("preview-sheet-name").textContent = `Quincena ${formatDateToDDMMYYYY(iso)}`;
+        }
+
+        function generateItemsFromMenu() {
+            const map = new Map();
+            let nextId = Date.now();
+            const allGroups = [
+                ...WEEKLY_MENU_PLAN.flatMap(d => d.ingredients),
+                ...BREAKFAST_ITEMS,
+                ...KID_SNACK_ITEMS
+            ];
+            allGroups.forEach(ing => {
+                if (!map.has(ing.name)) {
+                    map.set(ing.name, {
+                        id: nextId++,
+                        name: ing.name,
+                        category: ing.cat,
+                        qty: ing.qty15d,
+                        price: ing.estPrice
+                    });
+                }
+            });
+            return Array.from(map.values());
+        }
+
+        function createNewPeriod(e) {
+            e.preventDefault();
+            const isoDate = document.getElementById("new-period-date").value;
+            if (!isoDate) return;
+
+            const sheetName = `Quincena ${formatDateToDDMMYYYY(isoDate)}`;
+            const template = document.querySelector('input[name="period-template"]:checked').value;
+            const autoSyncSheets = document.getElementById("sync-sheets-on-create").checked;
+
+            let newItems = [];
+            if (template === "menu") {
+                newItems = generateItemsFromMenu();
+            } else if (template === "clone") {
+                newItems = JSON.parse(JSON.stringify(getActivePeriod().items));
+            } else {
+                newItems = [];
+            }
+
+            appState.periods[sheetName] = {
+                id: sheetName,
+                date: isoDate,
+                items: newItems,
+                pending: JSON.parse(JSON.stringify(BASE_PENDING_ITEMS))
+            };
+            appState.activePeriodId = sheetName;
+            simPendingSelection = {};
+            saveState();
+            closeNewPeriodModal();
+            syncAllViews();
+
+            if (autoSyncSheets) {
+                pushCurrentPeriodToSheets(true);
+            } else {
+                showToast(`Lista "${sheetName}" creada correctamente.`);
+            }
+        }
+
+        // =========================================================================
+        // PENDING ITEMS -> MOVE TO PURCHASED LIST ON COMPLETION
+        // =========================================================================
+        function completePendingItem(pendingId) {
+            const period = getActivePeriod();
+            const idx = period.pending.findIndex(p => p.id === pendingId);
+            if (idx === -1) return;
+
+            const item = period.pending[idx];
+            // 1. Remove from pending list immediately
+            period.pending.splice(idx, 1);
+
+            // 2. Add to active shopping list with current/estimated price
+            period.items.unshift({
+                id: Date.now(),
+                name: item.name,
+                category: item.category,
+                qty: item.qty || "1 und",
+                price: parseFloat(item.estPrice) || 0,
+                fromPending: true
+            });
+
+            saveState();
+            syncAllViews();
+            showToast(`"${item.name}" ($${(item.estPrice || 0).toFixed(2)}) movido a Comprados.`);
+        }
+
+        function updatePendingEstPrice(pendingId, newVal) {
+            const period = getActivePeriod();
+            const item = period.pending.find(p => p.id === pendingId);
+            if (item) {
+                item.estPrice = Math.max(0, parseFloat(newVal) || 0);
+                saveState();
+                renderOverview();
+                renderSimulator();
+            }
+        }
+
+        function addNewPending(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById("new-pending-name");
+            const priceInput = document.getElementById("new-pending-price");
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            const period = getActivePeriod();
+            period.pending.push({
+                id: Date.now(),
+                name,
+                category: "Vegetales, Frutas y Tubérculos",
+                qty: "1 und",
+                estPrice: parseFloat(priceInput.value) || 2.00
+            });
+
+            nameInput.value = "";
+            priceInput.value = "";
+            saveState();
+            syncAllViews();
+            showToast(`"${name}" agregado a pendientes.`);
+        }
+
+        function returnItemToPending(itemId) {
+            const period = getActivePeriod();
+            const idx = period.items.findIndex(i => i.id === itemId);
+            if (idx === -1) return;
+
+            const item = period.items[idx];
+            period.items.splice(idx, 1);
+            period.pending.push({
+                id: Date.now(),
+                name: item.name,
+                category: item.category,
+                qty: item.qty,
+                estPrice: item.price
+            });
+
+            saveState();
+            syncAllViews();
+            showToast(`"${item.name}" devuelto a pendientes.`, "warning");
+        }
+
+        // =========================================================================
+        // SHOPPING LIST CRUD & LIVE EDITING
+        // =========================================================================
+        function addNewShoppingItem(e) {
+            e.preventDefault();
+            const name = document.getElementById("add-item-name").value.trim();
+            const category = document.getElementById("add-item-cat").value;
+            const qty = document.getElementById("add-item-qty").value.trim() || "1 und";
+            const price = parseFloat(document.getElementById("add-item-price").value) || 0;
+
+            if (!name) return;
+
+            const period = getActivePeriod();
+            period.items.unshift({
+                id: Date.now(),
+                name,
+                category,
+                qty,
+                price
+            });
+
+            document.getElementById("add-item-name").value = "";
+            document.getElementById("add-item-qty").value = "";
+            document.getElementById("add-item-price").value = "";
+
+            saveState();
+            syncAllViews();
+            showToast(`"${name}" añadido a la lista ($${price.toFixed(2)}).`);
+        }
+
+        function updateShoppingItemPrice(itemId, newPrice) {
+            const period = getActivePeriod();
+            const item = period.items.find(i => i.id === itemId);
+            if (item) {
+                item.price = Math.max(0, parseFloat(newPrice) || 0);
+                saveState();
+                renderOverview();
+                renderSimulator();
+                updateTableTotal();
+            }
+        }
+
+        function deleteShoppingItem(itemId) {
+            const period = getActivePeriod();
+            period.items = period.items.filter(i => i.id !== itemId);
+            saveState();
+            syncAllViews();
+            showToast("Artículo eliminado de la lista.", "warning");
+        }
+
+        // =========================================================================
+        // RENDERERS: OVERVIEW, SHOPPING, MENU, SIMULATOR
+        // =========================================================================
+        function getTotals(period) {
+            const spent = period.items.reduce((acc, i) => acc + (parseFloat(i.price) || 0), 0);
+            const pendingEst = period.pending.reduce((acc, p) => acc + (parseFloat(p.estPrice) || 0), 0);
+            const remaining = MAX_BUDGET - spent;
+            return { spent, pendingEst, remaining };
+        }
+
+        function renderOverview() {
+            const period = getActivePeriod();
+            const { spent, pendingEst, remaining } = getTotals(period);
+
+            document.getElementById("overview-period-badge").textContent = period.id;
+            document.getElementById("kpi-spent-hero").textContent = `$${spent.toFixed(2)}`;
+            document.getElementById("kpi-spent").textContent = `$${spent.toFixed(2)}`;
+            document.getElementById("kpi-available").textContent = `$${remaining.toFixed(2)}`;
+            document.getElementById("kpi-available").className = `text-2xl font-extrabold mt-2 ${remaining >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600"}`;
+
+            const pctUsed = ((spent / MAX_BUDGET) * 100).toFixed(1);
+            document.getElementById("kpi-available-sub").textContent = `${pctUsed}% del tope de $150.00 usado`;
+            document.getElementById("kpi-items-bought").textContent = period.items.length;
+            document.getElementById("kpi-items-pending").textContent = period.pending.length;
+
+            // Cost per day & family portion (15 days, 2.6 adult-equivalent rations/day)
+            const perDay = spent / 15;
+            const perRation = perDay / FAMILY_FACTOR;
+            document.getElementById("kpi-per-day").innerHTML = `$${perDay.toFixed(2)} <span class="text-xs font-normal text-stone-400">/día</span>`;
+            document.getElementById("kpi-per-person").textContent = `$${perRation.toFixed(2)} por ración equiv. (2.6/día × 15d)`;
+
+            // Stacked Progress Bar
+            const spentPct = Math.min(100, (spent / MAX_BUDGET) * 100);
+            const pendingPct = Math.min(100 - spentPct, (pendingEst / MAX_BUDGET) * 100);
+            document.getElementById("bar-spent").style.width = `${spentPct}%`;
+            document.getElementById("bar-pending").style.width = `${pendingPct}%`;
+
+            document.getElementById("legend-spent").textContent = `$${spent.toFixed(2)}`;
+            document.getElementById("legend-pending").textContent = `$${pendingEst.toFixed(2)}`;
+            document.getElementById("legend-remaining").textContent = remaining >= 0
+                ? `Remanente libre: $${remaining.toFixed(2)}`
+                : `Excedido por: $${Math.abs(remaining).toFixed(2)}`;
+            document.getElementById("legend-remaining").className = `font-bold ${remaining >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600"}`;
+
+            const statusPill = document.getElementById("overview-status-pill");
+            if (spent > MAX_BUDGET) {
+                statusPill.textContent = "Tope de $150 excedido";
+                statusPill.className = "px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold";
+            } else if (spent + pendingEst > MAX_BUDGET) {
+                statusPill.textContent = "Atención: Pendientes superan el saldo";
+                statusPill.className = "px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-xs font-bold";
+            } else {
+                statusPill.textContent = "Dentro del presupuesto ($150)";
+                statusPill.className = "px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold";
+            }
+
+            // Category Aggregation
+            const catTotals = {};
+            period.items.forEach(item => {
+                catTotals[item.category] = (catTotals[item.category] || 0) + (parseFloat(item.price) || 0);
+            });
+
+            const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+            const breakdownList = document.getElementById("category-breakdown-list");
+            breakdownList.innerHTML = "";
+
+            const palette = ["#059669", "#d97706", "#2563eb", "#7c3aed", "#db2777", "#0891b2", "#ea580c", "#4b5563"];
+            sortedCats.forEach(([cat, val], idx) => {
+                const share = spent > 0 ? ((val / spent) * 100).toFixed(1) : "0.0";
+                const color = palette[idx % palette.length];
+                breakdownList.innerHTML += `
+                    <div class="flex items-center justify-between text-xs p-2 rounded-xl bg-stone-50 dark:bg-stone-800/60">
+                        <div class="flex items-center gap-2 truncate pr-2">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
+                            <span class="font-medium text-stone-700 dark:text-stone-300 truncate">${cat}</span>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="font-extrabold text-stone-900 dark:text-white">$${val.toFixed(2)}</span>
+                            <span class="text-[10px] text-stone-400 ml-1">(${share}%)</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update Doughnut Chart
+            const ctx = document.getElementById("categoryChart").getContext("2d");
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                    labels: sortedCats.map(c => c[0]),
+                    datasets: [{
+                        data: sortedCats.map(c => c[1].toFixed(2)),
+                        backgroundColor: sortedCats.map((_, idx) => palette[idx % palette.length]),
+                        borderWidth: 2,
+                        borderColor: document.documentElement.classList.contains("dark") ? "#1c1917" : "#ffffff"
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "66%",
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Overview Pending List
+            const ovPending = document.getElementById("overview-pending-list");
+            ovPending.innerHTML = "";
+            if (period.pending.length === 0) {
+                ovPending.innerHTML = `<p class="text-xs text-emerald-600 font-semibold py-3 text-center"><i class="fa-solid fa-check-double mr-1"></i>¡Todos los pendientes completados!</p>`;
+            } else {
+                period.pending.forEach(p => {
+                    ovPending.innerHTML += `
+                        <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 text-xs">
+                            <span class="font-medium text-stone-800 dark:text-stone-200 truncate">${p.name}</span>
+                            <button onclick="completePendingItem(${p.id})" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shrink-0 transition cursor-pointer">
+                                ✓ $${(p.estPrice || 0).toFixed(2)}
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            // Period Comparison List
+            const compList = document.getElementById("period-comparison-list");
+            compList.innerHTML = "";
+            Object.values(appState.periods).forEach(per => {
+                const t = getTotals(per).spent;
+                const isActive = per.id === period.id;
+                compList.innerHTML += `
+                    <div onclick="switchPeriod('${per.id}')" class="flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition ${isActive ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 font-bold' : 'bg-stone-50 dark:bg-stone-800/50 border-stone-200 dark:border-stone-700 hover:bg-stone-100'}">
+                        <span>${per.id}</span>
+                        <span class="${t <= MAX_BUDGET ? 'text-emerald-600' : 'text-rose-600'} font-extrabold">$${t.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPendientesSection() {
+            const period = getActivePeriod();
+            const grid = document.getElementById("pendientes-grid");
+            document.getElementById("pending-section-count").textContent = period.pending.length;
+            document.getElementById("nav-badge-pendientes").textContent = period.pending.length;
+            grid.innerHTML = "";
+
+            if (period.pending.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-4 text-center text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-100/60 dark:bg-emerald-950/40 rounded-xl">
+                        <i class="fa-solid fa-circle-check mr-1.5"></i>No hay productos pendientes. Todos fueron incorporados a la lista de compras actual.
+                    </div>
+                `;
+                return;
+            }
+
+            period.pending.forEach(p => {
+                const card = document.createElement("div");
+                card.className = "bg-white dark:bg-stone-900 p-3.5 rounded-xl border border-amber-300/80 dark:border-amber-800/70 shadow-sm flex flex-col justify-between gap-2.5";
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <p class="text-xs font-bold text-stone-900 dark:text-white leading-snug">${p.name}</p>
+                            <span class="text-[10px] text-stone-400">${p.category} • ${p.qty || '1 und'}</span>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <span class="text-[11px] text-stone-400">$</span>
+                            <input type="number" step="0.01" min="0" value="${(p.estPrice || 0).toFixed(2)}" onchange="updatePendingEstPrice(${p.id}, this.value)" class="w-16 px-1.5 py-0.5 rounded bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-xs font-bold text-right">
+                        </div>
+                    </div>
+                    <button onclick="completePendingItem(${p.id})" class="w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check"></i> Marcar como Comprado
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderShoppingTable() {
+            const period = getActivePeriod();
+            document.getElementById("shopping-period-title").textContent = period.id;
+
+            // Category Filter Pills
+            const cats = ["Todas", ...new Set(period.items.map(i => i.category))];
+            const filtersDiv = document.getElementById("category-filters");
+            filtersDiv.innerHTML = "";
+            cats.forEach(c => {
+                const active = activeCategoryFilter === c;
+                const shortLabel = c.split(",")[0].split(" y ")[0];
+                filtersDiv.innerHTML += `
+                    <button onclick="setCategoryFilter('${c}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${active ? 'bg-emerald-600 text-white' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200'}">
+                        ${shortLabel}
+                    </button>
+                `;
+            });
+
+            const search = (document.getElementById("search-input").value || "").toLowerCase();
+            const filtered = period.items.filter(item => {
+                const matchCat = activeCategoryFilter === "Todas" || item.category === activeCategoryFilter;
+                const matchTxt = item.name.toLowerCase().includes(search) || item.category.toLowerCase().includes(search);
+                return matchCat && matchTxt;
+            });
+
+            const tbody = document.getElementById("shopping-table-body");
+            tbody.innerHTML = "";
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-xs text-stone-400">No hay productos que coincidan con la búsqueda.</td></tr>`;
+            } else {
+                filtered.forEach(item => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-stone-50/80 dark:hover:bg-stone-800/40 transition";
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-3 font-semibold text-stone-900 dark:text-white">
+                            ${item.name}
+                            ${item.fromPending ? '<span class="ml-1.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">De Pendientes</span>' : ''}
+                        </td>
+                        <td class="py-2.5 px-3">
+                            <span class="px-2 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-[11px] font-medium">${item.category}</span>
+                        </td>
+                        <td class="py-2.5 px-3 text-xs text-stone-500">${item.qty}</td>
+                        <td class="py-2.5 px-3 text-right">
+                            <div class="inline-flex items-center justify-end">
+                                <span class="text-xs text-stone-400 mr-1">$</span>
+                                <input type="number" step="0.01" min="0" value="${(parseFloat(item.price) || 0).toFixed(2)}" onchange="updateShoppingItemPrice(${item.id}, this.value)" class="w-20 px-2 py-1 rounded-lg bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-right font-bold text-stone-900 dark:text-white text-xs">
+                            </div>
+                        </td>
+                        <td class="py-2.5 px-3 text-center">
+                            <div class="inline-flex items-center gap-1">
+                                <button onclick="returnItemToPending(${item.id})" class="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 transition cursor-pointer" title="Devolver a Pendientes">
+                                    <i class="fa-solid fa-rotate-left text-xs"></i>
+                                </button>
+                                <button onclick="deleteShoppingItem(${item.id})" class="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition cursor-pointer" title="Eliminar">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            updateTableTotal();
+        }
+
+        function setCategoryFilter(cat) {
+            activeCategoryFilter = cat;
+            renderShoppingTable();
+        }
+
+        function updateTableTotal() {
+            const { spent } = getTotals(getActivePeriod());
+            document.getElementById("table-total-price").textContent = `$${spent.toFixed(2)}`;
+        }
+
+        // =========================================================================
+        // MENU 15 DÍAS -> LIVE STATUS & SYNC TO SHOPPING LIST
+        // =========================================================================
+        function checkIngredientStatus(matchKey) {
+            const period = getActivePeriod();
+            const key = matchKey.toLowerCase();
+            if (period.items.some(i => i.name.toLowerCase().includes(key))) return "bought";
+            if (period.pending.some(p => p.name.toLowerCase().includes(key))) return "pending";
+            return "missing";
+        }
+
+        function renderIngredientBadge(ing) {
+            const status = checkIngredientStatus(ing.match);
+            const styles = status === "bought"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                : status === "pending"
+                ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800";
+            const label = status === "bought" ? "En Lista" : status === "pending" ? "Pendiente" : "Falta";
+
+            return `
+                <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl border text-xs ${styles}">
+                    <div class="truncate">
+                        <span class="font-semibold">${ing.name}</span>
+                        <span class="text-[10px] opacity-75 ml-1">(${ing.qty15d})</span>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white/70 dark:bg-stone-900/70 shrink-0">${label}</span>
+                </div>
+            `;
+        }
+
+        function renderMenu() {
+            // Breakfast & Kid Snacks
+            document.getElementById("breakfast-ingredients-badges").innerHTML = BREAKFAST_ITEMS.map(renderIngredientBadge).join("");
+            document.getElementById("snacks-ingredients-badges").innerHTML = KID_SNACK_ITEMS.map(renderIngredientBadge).join("");
+
+            // Weekly Days
+            const grid = document.getElementById("menu-days-grid");
+            grid.innerHTML = "";
+            WEEKLY_MENU_PLAN.forEach((d, idx) => {
+                const card = document.createElement("div");
+                card.className = "rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-800/40 p-4 flex flex-col justify-between gap-3";
+                card.innerHTML = `
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white text-xs font-extrabold">${d.day} (×2 sem)</span>
+                            <button onclick="sendDayIngredientsToList(${idx})" class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer">
+                                + Enviar faltantes
+                            </button>
+                        </div>
+                        <div class="space-y-1 text-xs">
+                            <p class="text-stone-700 dark:text-stone-200"><strong class="text-stone-900 dark:text-white">Almuerzo:</strong> ${d.lunch}</p>
+                            <p class="text-stone-700 dark:text-stone-200"><strong class="text-stone-900 dark:text-white">Cena:</strong> ${d.dinner}</p>
+                        </div>
+                        <div class="space-y-1.5 pt-2 border-t border-stone-200/70 dark:border-stone-700/70">
+                            ${d.ingredients.map(renderIngredientBadge).join("")}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addIngredientsBatch(ingredientsList) {
+            const period = getActivePeriod();
+            let addedCount = 0;
+
+            ingredientsList.forEach(ing => {
+                const status = checkIngredientStatus(ing.match);
+                if (status === "missing") {
+                    period.items.unshift({
+                        id: Date.now() + Math.floor(Math.random() * 10000),
+                        name: ing.name,
+                        category: ing.cat,
+                        qty: ing.qty15d,
+                        price: ing.estPrice
+                    });
+                    addedCount++;
+                }
+            });
+
+            if (addedCount > 0) {
+                saveState();
+                syncAllViews();
+                showToast(`${addedCount} ingrediente(s) del menú agregados a la lista de compras.`);
+            } else {
+                showToast("Todos esos ingredientes ya están en tu lista o en pendientes.", "info");
+            }
+        }
+
+        function sendDayIngredientsToList(dayIdx) {
+            addIngredientsBatch(WEEKLY_MENU_PLAN[dayIdx].ingredients);
+        }
+
+        function sendBreakfastToList() {
+            addIngredientsBatch([...BREAKFAST_ITEMS, ...KID_SNACK_ITEMS]);
+        }
+
+        function syncMenuToShoppingList() {
+            const all = [
+                ...WEEKLY_MENU_PLAN.flatMap(d => d.ingredients),
+                ...BREAKFAST_ITEMS,
+                ...KID_SNACK_ITEMS
+            ];
+            addIngredientsBatch(all);
+        }
+
+        // =========================================================================
+        // SIMULATOR & BUDGET OPTIMIZER ($150.00 MAX)
+        // =========================================================================
+        function renderSimulator() {
+            const period = getActivePeriod();
+            const container = document.getElementById("sim-pending-toggles");
+            container.innerHTML = "";
+
+            if (period.pending.length === 0) {
+                container.innerHTML = `<p class="text-xs text-stone-400 py-2">No hay pendientes activos para simular.</p>`;
+            } else {
+                period.pending.forEach(p => {
+                    if (simPendingSelection[p.id] === undefined) simPendingSelection[p.id] = true;
+                    const checked = simPendingSelection[p.id];
+                    container.innerHTML += `
+                        <label class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 cursor-pointer text-xs">
+                            <div class="flex items-center gap-2 truncate">
+                                <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleSimPending(${p.id}, this.checked)" class="rounded text-emerald-600">
+                                <span class="font-semibold text-stone-800 dark:text-stone-200 truncate">${p.name}</span>
+                            </div>
+                            <span class="font-extrabold text-amber-600 shrink-0">+$${(p.estPrice || 0).toFixed(2)}</span>
+                        </label>
+                    `;
+                });
+            }
+
+            runSimulator();
+        }
+
+        function toggleSimPending(id, val) {
+            simPendingSelection[id] = val;
+            runSimulator();
+        }
+
+        function resetSimulator() {
+            document.getElementById("slider-carnes").value = 0;
+            document.getElementById("slider-vegetales").value = 0;
+            document.getElementById("slider-otros").value = 0;
+            document.getElementById("opt-chuleta").checked = false;
+            document.getElementById("opt-feria").checked = false;
+            document.getElementById("opt-snacks").checked = false;
+            simPendingSelection = {};
+            renderSimulator();
+        }
+
+        function runSimulator() {
+            const period = getActivePeriod();
+            const pctCarnes = parseFloat(document.getElementById("slider-carnes").value) || 0;
+            const pctVegetales = parseFloat(document.getElementById("slider-vegetales").value) || 0;
+            const pctOtros = parseFloat(document.getElementById("slider-otros").value) || 0;
+
+            document.getElementById("slider-carnes-val").textContent = `${pctCarnes > 0 ? '+' : ''}${pctCarnes}%`;
+            document.getElementById("slider-vegetales-val").textContent = `${pctVegetales > 0 ? '+' : ''}${pctVegetales}%`;
+            document.getElementById("slider-otros-val").textContent = `${pctOtros > 0 ? '+' : ''}${pctOtros}%`;
+
+            // Adjusted base spent
+            let adjustedBase = 0;
+            period.items.forEach(item => {
+                const price = parseFloat(item.price) || 0;
+                if (item.category.includes("Carnes")) {
+                    adjustedBase += price * (1 + pctCarnes / 100);
+                } else if (item.category.includes("Vegetales")) {
+                    adjustedBase += price * (1 + pctVegetales / 100);
+                } else {
+                    adjustedBase += price * (1 + pctOtros / 100);
+                }
+            });
+
+            // Selected pending items
+            let selectedPendingTotal = 0;
+            period.pending.forEach(p => {
+                if (simPendingSelection[p.id] !== false) {
+                    selectedPendingTotal += (parseFloat(p.estPrice) || 0);
+                }
+            });
+
+            // Smart savings toggles
+            let savings = 0;
+            if (document.getElementById("opt-chuleta").checked) savings += 3.50;
+            if (document.getElementById("opt-feria").checked) savings += 4.20;
+            if (document.getElementById("opt-snacks").checked) savings += 4.80;
+
+            const projectedTotal = Math.max(0, adjustedBase + selectedPendingTotal - savings);
+            const balance = MAX_BUDGET - projectedTotal;
+
+            document.getElementById("sim-projected-total").textContent = `$${projectedTotal.toFixed(2)}`;
+            document.getElementById("sim-projected-breakdown").textContent =
+                `Base ajustada $${adjustedBase.toFixed(2)} + Pendientes $${selectedPendingTotal.toFixed(2)} - Ahorro $${savings.toFixed(2)}`;
+
+            const balCard = document.getElementById("sim-balance-card");
+            const balAmount = document.getElementById("sim-balance-amount");
+            const balMsg = document.getElementById("sim-balance-msg");
+
+            if (balance >= 0) {
+                balCard.className = "bg-emerald-50 dark:bg-emerald-950/40 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800 shadow-sm";
+                balAmount.className = "text-3xl font-extrabold text-emerald-700 dark:text-emerald-300 mt-1";
+                balAmount.textContent = `+$${balance.toFixed(2)}`;
+                balMsg.textContent = "Excelente: cabe dentro del tope fijo de $150.00";
+            } else {
+                balCard.className = "bg-rose-50 dark:bg-rose-950/40 p-5 rounded-2xl border border-rose-200 dark:border-rose-800 shadow-sm";
+                balAmount.className = "text-3xl font-extrabold text-rose-700 dark:text-rose-300 mt-1";
+                balAmount.textContent = `-$${Math.abs(balance).toFixed(2)}`;
+                balMsg.textContent = "Excede los $150.00: activa sustituciones o ajusta pendientes";
+            }
+
+            // Family Unit Economics (45 meal occasions in 15 days)
+            const costPerMeal = projectedTotal / 45;
+            const dailyAdult = (projectedTotal / 15) / FAMILY_FACTOR;
+            const dailyKid = dailyAdult * 0.6;
+            document.getElementById("sim-cost-per-meal").textContent = `$${costPerMeal.toFixed(2)}`;
+            document.getElementById("sim-daily-person").textContent = `$${dailyAdult.toFixed(2)}/día`;
+            document.getElementById("sim-daily-kid").textContent = `$${dailyKid.toFixed(2)}/día`;
+        }
+
+        // =========================================================================
+        // GOOGLE SHEETS SYNC, COPY TSV & CSV EXPORT
+        // =========================================================================
+        function saveWebhookUrl() {
+            const url = document.getElementById("apps-script-url").value.trim();
+            appState.webhookUrl = url;
+            saveState();
+            showToast("URL de Google Apps Script guardada.");
+        }
+
+        async function pushCurrentPeriodToSheets(silentFallback = false) {
+            const period = getActivePeriod();
+            const { spent } = getTotals(period);
+            const webhook = appState.webhookUrl;
+
+            if (!webhook) {
+                copyForGoogleSheets(true);
+                if (silentFallback) {
+                    showToast(`Lista "${period.id}" creada y copiada al portapapeles para pegar en Google Sheets.`);
+                } else {
+                    showToast(`Tabla "${period.id}" copiada. Pégala en tu Google Sheet (Ctrl+V).`);
+                }
+                return;
+            }
+
+            try {
+                await fetch(webhook, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        sheetName: period.id,
+                        total: spent.toFixed(2),
+                        items: period.items
+                    })
+                });
+                showToast(`Pestaña "${period.id}" enviada a Google Sheets correctamente.`);
+            } catch (err) {
+                copyForGoogleSheets(true);
+                showToast("No se pudo conectar al webhook; tabla copiada al portapapeles.", "warning");
+            }
+        }
+
+        function copyForGoogleSheets(silent = false) {
+            const period = getActivePeriod();
+            const { spent } = getTotals(period);
+            const lines = [
+                ["Categoría", "Producto", "Cantidad / Peso", "Precio ($)", "Estado"].join("\t")
+            ];
+            period.items.forEach(item => {
+                lines.push([
+                    item.category,
+                    item.name,
+                    item.qty,
+                    (parseFloat(item.price) || 0).toFixed(2),
+                    "Comprado"
+                ].join("\t"));
+            });
+            lines.push(["", "", "TOTAL QUINCENA", spent.toFixed(2), `Tope: $150.00`].join("\t"));
+
+            const textarea = document.createElement("textarea");
+            textarea.value = lines.join("\n");
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+
+            if (!silent) {
+                showToast(`Tabla de "${period.id}" copiada. Abre Google Sheets y presiona Ctrl+V.`);
+            }
+        }
+
+        function downloadCSV() {
+            const period = getActivePeriod();
+            const { spent } = getTotals(period);
+            const rows = [
+                ["Categoría", "Producto", "Cantidad / Peso", "Precio ($)", "Estado"]
+            ];
+            period.items.forEach(item => {
+                rows.push([
+                    `"${item.category}"`,
+                    `"${item.name.replace(/"/g, '""')}"`,
+                    `"${item.qty}"`,
+                    (parseFloat(item.price) || 0).toFixed(2),
+                    "Comprado"
+                ]);
+            });
+            rows.push(["", "", "TOTAL QUINCENA", spent.toFixed(2), "Tope $150.00"]);
+
+            const csvContent = "data:text/csv;charset=utf-8," + rows.map(r => r.join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${period.id.replace(/\s+/g, "_")}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Descargado ${period.id}.csv`);
+        }
+
+        function copyAppsScriptCode() {
+            const code = document.getElementById("apps-script-snippet").textContent;
+            const textarea = document.createElement("textarea");
+            textarea.value = code;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            showToast("Código de Google Apps Script copiado.");
+        }
+
+        // =========================================================================
+        // MASTER SYNC & THEME
+        // =========================================================================
+        function syncAllViews() {
+            renderPeriodSelector();
+            document.getElementById("sheets-active-period-name").textContent = appState.activePeriodId;
+            renderOverview();
+            renderPendientesSection();
+            renderShoppingTable();
+            renderMenu();
+            renderSimulator();
+        }
+
+        function resetAllData() {
+            localStorage.removeItem("mercado_casa_eder_tutti_v2");
+            location.reload();
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById("theme-icon");
+            if (html.classList.contains("dark")) {
+                html.classList.remove("dark");
+                localStorage.setItem("casa_theme_v2", "light");
+                icon.className = "fa-solid fa-moon text-xs";
+            } else {
+                html.classList.add("dark");
+                localStorage.setItem("casa_theme_v2", "dark");
+                icon.className = "fa-solid fa-sun text-xs";
+            }
+            renderOverview();
+        }
+
+        window.onload = function () {
+            if (localStorage.getItem("casa_theme_v2") === "dark") {
+                document.documentElement.classList.add("dark");
+                document.getElementById("theme-icon").className = "fa-solid fa-sun text-xs";
+            }
+            loadState();
+            syncAllViews();
+            switchTab("overview");
+        };
+    </script>
+</body>
+</html>
